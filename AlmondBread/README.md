@@ -9,9 +9,29 @@ e.g.
     /X-0.5_Y0.0_Z8.png
 
 
-Color Maps are located in ./colormaps/ relative to the execution path
+Color Maps are located in ../colormaps/ relative to the execution path
 
-Images are cached as files in ./imageCache/ relative to the execution path
+Images are cached as files in ../imageCache/ relative to the execution path
+
+
+Dependent on C Libraries:
+========================
+
+libevent http://libevent.org - efficient HTTP server
+
+ImageMagick MagicWand API http://www.imagemagick.org/script/magick-wand.php - creating and transforming images in multiple formats
+
+
+On OSX ImageMagick can be installed with homebrew:
+
+    brew install imagemagick
+
+On Debian/Ubuntu with apt-get:
+
+    apt-get install libmagickwand-dev
+
+
+Others can be installed from source: i.e. with: ./configure; make; make install
 
 
 Nginx Conf
