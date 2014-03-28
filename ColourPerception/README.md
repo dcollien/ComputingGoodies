@@ -43,9 +43,9 @@ There are also various helper libraries:
 Dependent on C Libraries:
 ========================
 
-libcurl http://curl.haxx.se/libcurl/ - communicating with OpenLearning
-jansson http://www.digip.org/jansson/ - decoding/encoding JSON data
-libevent http://libevent.org - efficient HTTP server
+- libcurl http://curl.haxx.se/libcurl/ - communicating with OpenLearning
+- jansson http://www.digip.org/jansson/ - decoding/encoding JSON data
+- libevent http://libevent.org - efficient HTTP server
 
 ImageMagick MagicWand API http://www.imagemagick.org/script/magick-wand.php - creating and transforming images in multiple formats
 
