@@ -3,7 +3,7 @@
 unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *length);
 
 // initialise
-void init_perception (const char *username, const char *password);
+void init_perception (const char *username, const char *password, const char *key);
 void deinit_perception (void);
 
 // store an image buffer to the file cache

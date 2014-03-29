@@ -14,7 +14,7 @@
 
 #define BUFFER_SIZE 8192
 
-#define EXPECTED_ARGS 3
+#define EXPECTED_ARGS 4
 
 #define EXT_LENGTH 3
 
@@ -31,10 +31,10 @@ int main (int argc, char **argv) {
    signal (SIGPIPE, brokenPipe);
 
    if (argc < EXPECTED_ARGS) {
-      fprintf (stderr, "args: <ol username> <ol password>\n");
+      fprintf (stderr, "args: <OpenLearning username> <OpenLearning password> <256-bit encryption key (32 characters)>\n");
    }
 
-   init_perception (argv[1], argv[2]);
+   init_perception (argv[1], argv[2], argv[3]);
    // start the eventlib http server
    event_init ();
    http_server = evhttp_start (http_addr, http_port);

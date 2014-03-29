@@ -34,6 +34,13 @@ On Debian/Ubuntu with apt-get:
 Others can be installed from source: i.e. with: ./configure; make; make install
 
 
+Hosting Viewers/HTML files
+===========================
+
+Place these under the imageCache directory, Nginx will serve all files from here
+
+
+
 Nginx Conf
 ===========
 

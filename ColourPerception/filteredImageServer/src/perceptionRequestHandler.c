@@ -24,7 +24,7 @@
 
 
 #include "perceptionRequestHandler.h"
-#include "weakEncrypt.h"
+#include "decryptURLCode.h"
 
 #define BUF_SIZE 1024
 
@@ -35,10 +35,7 @@
 
 #define EXTENSION_LENGTH 4
 
-#define SECRET 0x902DF34D
-
 #define COLOR_FIELD_NAME "What is your favourite colour?"
-
 
 #define CACHE_PATH "./imageCache"
 #define CACHE_PATH_LEN 12
@@ -54,6 +51,7 @@
 static char **fileNames;
 static const char *username;
 static const char *password;
+static const unsigned char *encryptionKey;
 static int numFilenames;
 
 static bool isValidFilename (const char *fileName) {
@@ -140,7 +138,8 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
 
    //char *imageFormat = NULL;
 
-   char profileName[BUF_SIZE] = "";
+   char userID[BUF_SIZE] = "";
+   char userToken[BUF_SIZE] = "";
    char profileHash[BUF_SIZE] = "";
    char cohortPath[BUF_SIZE] = "";
    char fileName[BUF_SIZE] = "";
@@ -188,7 +187,6 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
    // create a new connection to OpenLearning (given username, password)
    OLConnection ol = new_OLConnection (username, password);
 
-   char *encodedProfileName;
    if (strlen (requestURI) >= BUF_SIZE) {
       // uri too long
       fprintf(stderr, "Request URI too long\n");
@@ -209,18 +207,8 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
    if (token == NULL) {
       return NULL;
    }
-   strncpy (profileName, token, BUF_SIZE);
-   fprintf (stderr, "Profile Name: %s\n", profileName);
-
-   token = strsep (&uriCopy, "/");
-   if (token == NULL) {
-      return NULL;
-   }
-   strncpy (profileHash, token, BUF_SIZE);
-   fprintf (stderr, "Profile Hash: %s\n", profileHash);
-   if (token == NULL) {
-      return NULL;
-   }
+   strncpy (userToken, token, BUF_SIZE);
+   fprintf (stderr, "User Token: %s\n", userToken);
 
    token = strsep (&uriCopy, "/");
    strncpy (fileName, token, BUF_SIZE);
@@ -268,26 +256,17 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
 
    fprintf (stderr, "Filename: %s\n", fileName);
 
-
-   encodedProfileName = encodeString (profileName, SECRET, &encodingLength);
-
-
-   if (strncmp (encodedProfileName, profileHash, encodingLength) != 0) {
+   if (!decryptURLCode(userToken, key, userID)) {
       // access denied
-
-      fprintf (stderr, "Access Denied %s != %s\n", encodedProfileName, profileHash);
-
-      free (encodedProfileName);
+      
+      fprintf (stderr, "Invalid Token\n");
       return NULL;
    }
 
    fprintf (stderr, "Authentication Passed\n");
 
-   free (encodedProfileName);
-
    if (!isValidFilename (fileName)) {
       // not found
-
 
       fprintf (stderr, "File not found: %s\n", fileName);
       return NULL;
@@ -298,7 +277,7 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
 
    // TODO: bmp serving
 
-   json_userInfoObject = get_OLConnection_userCohortInfo (ol, cohortPath, profileName);
+   json_userInfoObject = get_OLConnection_userCohortInfo (ol, cohortPath, userID);
 
    if (!json_is_object (json_userInfoObject)) {
 
@@ -366,7 +345,7 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
       completedActivities = 0;
    }
 
-   colorVision = getVisionForUser (profileName, karma, favColor, completedActivities);
+   colorVision = getVisionForUser (userID, karma, favColor, completedActivities);
 
    fprintf (stderr, "Color Vision Calculated\n");
 
@@ -424,7 +403,7 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
 }
 
 // initialise
-void init_perception (const char *olUser, const char *olPass) {
+void init_perception (const char *olUser, const char *olPass, const char *key) {
    struct stat existenceStat;
    int fileNamesSize;
    char fileName[BUF_SIZE];
@@ -433,21 +412,22 @@ void init_perception (const char *olUser, const char *olPass) {
 
    username = olUser;
    password = olPass;
+   encryptionKey = (unsigned char *)key
 
    init_imageTools ();
 
-   if(stat (CACHE_PATH, &existenceStat) < 0 || !S_ISDIR(existenceStat.st_mode)) {
+   if (stat (CACHE_PATH, &existenceStat) < 0 || !S_ISDIR(existenceStat.st_mode)) {
       fprintf (stderr, "Cache directory: " CACHE_PATH " does not exist\n");
       exit (EXIT_FAILURE);
    }
 
-   if(stat (REPO_PATH, &existenceStat) < 0 || !S_ISDIR(existenceStat.st_mode)) {
+   if (stat (REPO_PATH, &existenceStat) < 0 || !S_ISDIR(existenceStat.st_mode)) {
       fprintf (stderr, "Repository directory: " REPO_PATH " does not exist\n");
       exit (EXIT_FAILURE);
    }
 
 
-   if(stat (REPO_FILE, &existenceStat) < 0) {
+   if (stat (REPO_FILE, &existenceStat) < 0) {
       fprintf (stderr, "Images file: " REPO_FILE " does not exist\n");
       exit (EXIT_FAILURE);
    }
@@ -476,6 +456,9 @@ void init_perception (const char *olUser, const char *olPass) {
 
 void deinit_perception (void) {
    int i;
+
+   memset(password, 0, strlen(password));
+   memset(encryptionKey, 0, strlen(encryptionKey));
 
    deinit_imageTools ();
 
