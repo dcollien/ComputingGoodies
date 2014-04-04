@@ -87,15 +87,15 @@ unsigned char *serveMandelbrot(char *requestURI, int width, int height, char *ex
    FILE *cacheFile;
    char cachePath[MAX_URI_SIZE+CACHE_PATH_LEN] = {0};
    char uri[MAX_URI_SIZE] = {0};
-   
-   if (strlen(requestURI) < MAX_URI_SIZE)) {
+
+   if (strlen(requestURI) < MAX_URI_SIZE) {
       scannedFields = sscanf(requestURI, "/X%Lf_Y%Lf_Z%d.%3s", &center.x, &center.y, &zoom, extension);
 
       if (scannedFields == 4) {
          isValidURI = true;
       }
    }
-   
+
    if (isValidURI) {
       strncpy(uri, requestURI, MAX_URI_SIZE);
       sprintf(cachePath, "%s%s", CACHE_PATH, uri);
