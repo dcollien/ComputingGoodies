@@ -49,9 +49,9 @@
 #define DEFAULT_Z 0
 
 static char **fileNames;
-static const char *username;
-static const char *password;
-static const unsigned char *encryptionKey;
+static char *username;
+static char *password;
+static unsigned char *encryptionKey;
 static int numFilenames;
 
 static bool isValidFilename (const char *fileName) {
@@ -140,7 +140,6 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
 
    char userID[BUF_SIZE] = "";
    char userToken[BUF_SIZE] = "";
-   char profileHash[BUF_SIZE] = "";
    char cohortPath[BUF_SIZE] = "";
    char fileName[BUF_SIZE] = "";
    char filePath[BUF_SIZE] = "";
@@ -152,8 +151,6 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
    int zoom = 0;
 
    bool isZooming = true;
-
-   int encodingLength;
 
    unsigned char inputFileBuffer[MAX_FILE_SIZE];
    size_t inputFileLength;
@@ -256,7 +253,7 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
 
    fprintf (stderr, "Filename: %s\n", fileName);
 
-   if (!decryptURLCode(userToken, key, userID)) {
+   if (!decryptURLCode((byte *)userToken, (byte *)encryptionKey, (byte *)userID)) {
       // access denied
       
       fprintf (stderr, "Invalid Token\n");
@@ -273,9 +270,6 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
    }
 
    fprintf (stderr, "File Recognised\n");
-
-
-   // TODO: bmp serving
 
    json_userInfoObject = get_OLConnection_userCohortInfo (ol, cohortPath, userID);
 
@@ -410,9 +404,9 @@ void init_perception (const char *olUser, const char *olPass, const char *key) {
 
    FILE *file;
 
-   username = olUser;
-   password = olPass;
-   encryptionKey = (unsigned char *)key
+   username = (char *)olUser;
+   password = (char *)olPass;
+   encryptionKey = (byte *)key;
 
    init_imageTools ();
 
@@ -458,7 +452,7 @@ void deinit_perception (void) {
    int i;
 
    memset(password, 0, strlen(password));
-   memset(encryptionKey, 0, strlen(encryptionKey));
+   memset(encryptionKey, 0, strlen((char *)encryptionKey));
 
    deinit_imageTools ();
 
