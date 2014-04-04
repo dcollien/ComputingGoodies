@@ -27,10 +27,14 @@ static int calcDecodeLength(const byte *b64input);
 bool decryptURLCode(byte *base64Input, byte *keyBytes, byte *decryptedText) {
 	uint32_t now;
 	int timestamp;
+	int timestampExtra;
+	int adjacentTimestamp;
 	int i;
+	bool isCorrectlyDecrypted;
 	
 	byte key[KEY_LENGTH];
-	byte iv[IV_LENGTH];
+	byte ivNow[IV_LENGTH];
+	byte ivAdjacent[IV_LENGTH];
 
 	byte *cipherBytes;
 	byte decryptedBytes[AES_BLOCK_SIZE];
@@ -55,23 +59,42 @@ bool decryptURLCode(byte *base64Input, byte *keyBytes, byte *decryptedText) {
 
 	now = time(NULL);
 	timestamp = now / TIMEOUT_SECONDS;
+	timestampExtra = now % TIMEOUT_SECONDS;
 
-	memset(iv, 0, IV_LENGTH);
+	if (timestampExtra > TIMEOUT_SECONDS/2) {
+		adjacentTimestamp = timestamp + 1;
+	} else {
+		adjacentTimestamp = timestamp - 1;
+	}
 
-	// put timestamp into IV
+	memset(ivNow, 0, IV_LENGTH);
+	memset(ivAdjacent, 0, IV_LENGTH);
+
+	// put timestamps into IVs
 	i = 0;
 	while (timestamp > 0) {
-		iv[i] = timestamp & BYTE_MASK;
+		ivNow[i] = timestamp & BYTE_MASK;
 		timestamp >>= BYTE_SIZE;
+		++i;
+	}
+
+	i = 0;
+	while (timestamp > 0) {
+		ivAdjacent[i] = adjacentTimestamp & BYTE_MASK;
+		adjacentTimestamp >>= BYTE_SIZE;
 		++i;
 	}
 
 	// decrypt as one block
 	AES_set_decrypt_key(key, KEY_BITS, &decryptKey);
-	AES_cbc_encrypt(cipherBytes, decryptedBytes, AES_BLOCK_SIZE, &decryptKey, iv, AES_DECRYPT);
+	AES_cbc_encrypt(cipherBytes, decryptedBytes, AES_BLOCK_SIZE, &decryptKey, ivNow, AES_DECRYPT);
 
-	// override key with zeros, no peeking!
-	memset(key, 0, KEY_LENGTH);
+	isCorrectlyDecrypted = (strncmp((char *)decryptedBytes, PREFIX, PREFIX_LENGTH) == 0);
+
+	if (!isCorrectlyDecrypted) {
+		AES_cbc_encrypt(cipherBytes, decryptedBytes, AES_BLOCK_SIZE, &decryptKey, ivAdjacent, AES_DECRYPT);
+		isCorrectlyDecrypted = (strncmp((char *)decryptedBytes, PREFIX, PREFIX_LENGTH) == 0);
+	}
 
 	// clean up
 	free(cipherBytes);
@@ -85,7 +108,10 @@ bool decryptURLCode(byte *base64Input, byte *keyBytes, byte *decryptedText) {
 	};
 	*hexWritingPtr = '\0';
 
-	return (strncmp((char *)decryptedBytes, PREFIX, PREFIX_LENGTH) == 0);
+	// override key with zeros, no peeking!
+	memset(key, 0, KEY_LENGTH);
+
+	return isCorrectlyDecrypted;
 }
 
 // Calculates the length of a decoded base64 string
