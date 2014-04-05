@@ -14,7 +14,7 @@
 
 
 #define RPC_PORT 80
-#define RPC_HOST "http://localhost:8000"
+#define RPC_HOST "https://www.openlearning.com"
 #define RPC_HOST_LENGTH 28
 
 #define TEXT_BUFFER_SIZE 1024
