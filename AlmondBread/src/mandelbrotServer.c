@@ -72,7 +72,7 @@ void saveToCache(char *requestURI, unsigned char *imageBuffer, int length) {
 }
 
 unsigned char *serveMandelbrot(char *requestURI, int width, int height, char *extension, size_t *length) {
-   unsigned char *imageBuffer;
+   unsigned char *imageBuffer = NULL;
    MandelbrotSet fractal;
 
    char *imageFormat = NULL;
@@ -138,9 +138,6 @@ unsigned char *serveMandelbrot(char *requestURI, int width, int height, char *ex
 
          overlayHiddenImages(overlays, center.x, center.y, zoom, width, height, &imageBuffer, length);
       }
-
-   } else {
-      imageBuffer = NULL;
    }
 
    return imageBuffer;
