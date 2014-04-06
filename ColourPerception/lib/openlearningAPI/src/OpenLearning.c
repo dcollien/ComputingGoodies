@@ -12,8 +12,6 @@
 #define MAX_USERNAME_SIZE 256
 #define MAX_PASSWORD_SIZE 256
 
-
-#define RPC_PORT 80
 #define RPC_HOST "https://www.openlearning.com"
 #define RPC_HOST_LENGTH 28
 
