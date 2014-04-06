@@ -18,6 +18,7 @@
 #define PREFIX "OKAY"
 #define PREFIX_LENGTH 4
 #define BUFFER_SIZE 32
+#define EXPECTED_OUTPUT_SIZE 24
 
 #include "decryptURLCode.h"
 
@@ -111,6 +112,8 @@ bool decryptURLCode(byte *base64Input, byte *keyBytes, byte *decryptedText) {
 	// override key with zeros, no peeking!
 	memset(key, 0, KEY_LENGTH);
 
+	assert (strlen(decryptedText) == EXPECTED_OUTPUT_SIZE);
+	
 	return isCorrectlyDecrypted;
 }
 
