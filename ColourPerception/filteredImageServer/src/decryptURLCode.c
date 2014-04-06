@@ -112,8 +112,8 @@ bool decryptURLCode(byte *base64Input, byte *keyBytes, byte *decryptedText) {
 	// override key with zeros, no peeking!
 	memset(key, 0, KEY_LENGTH);
 
-	assert (strlen(decryptedText) == EXPECTED_OUTPUT_SIZE);
-	
+	assert (strlen((char *)decryptedText) == EXPECTED_OUTPUT_SIZE);
+
 	return isCorrectlyDecrypted;
 }
 
