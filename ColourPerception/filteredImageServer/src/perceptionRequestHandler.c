@@ -260,7 +260,7 @@ unsigned char *servePerceptionImage (char *requestURI, char *extension, size_t *
       return NULL;
    }
 
-   fprintf (stderr, "Authentication Passed\n");
+   fprintf (stderr, "Authentication Passed for %s\n", userID);
 
    if (!isValidFilename (fileName)) {
       // not found
